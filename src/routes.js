@@ -1,37 +1,45 @@
 // src/AppRoutes.js
-import React, { useState } from 'react';
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-
-import Dashboard from './pages/Dashboard';
-import Devices from './pages/Devices';          
-import DeviceManage from './pages/DeviceManage';
 import PlantManage from './pages/PlantManage';  // Trang quản lý cây trồng mới
-import UserInfo from './pages/UserInfo';
 import AnalyticsPage from './pages/AnalyticsPage';
 import Login from './Login';
+import {useGlobal} from './services/globalContext'
 
-function RequireAuth({ loggedIn }) {
-  if (!loggedIn) return <Navigate to="/login" replace />;
+function RequireAuth({ isLogined }) {
+  if (!isLogined) return <Navigate to="/login" replace />;
   return <Outlet />;
 }
 
+function checkLogin() {
+  return document.cookie.split(";").some(c => c.trim().startsWith("tk="));
+}
+
 function AppRoutes() {
-  const [loggedIn, setLoggedIn] = useState(false);
+  const {isLogined, setIsLogined} = useGlobal();
+
+  useEffect(() => {
+    setIsLogined(checkLogin());
+  }, [setIsLogined]);
 
   return (
     <Router>
       <Routes>
         {/* Route công khai */}
-        <Route path="/login" element={<Login onLoginSuccess={() => setLoggedIn(true)} />} />
+        <Route
+          path="/login"
+          element={
+            isLogined ? (
+              <Navigate to="/realtime-data" replace />
+            ) : (
+              <Login onLoginSuccess={() => setIsLogined(true)} />
+            )
+          }
+        />
 
         {/* Các route yêu cầu đăng nhập */}
-        <Route element={<RequireAuth loggedIn={loggedIn} />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/devices" element={<Devices />} />
-          <Route path="/device-manage" element={<DeviceManage />} />
-          <Route path="/plant-manage" element={<PlantManage />} />   {/* Route mới */}
-          <Route path="/userinfo" element={<UserInfo />} />
+        <Route element={<RequireAuth isLogined={isLogined} />}>
+          <Route path="/realtime-data" element={<PlantManage />} /> 
           <Route path="/analytics" element={<AnalyticsPage />} />
         </Route>
 

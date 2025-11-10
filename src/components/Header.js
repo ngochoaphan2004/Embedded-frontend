@@ -1,14 +1,11 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-
+import { useGlobal } from '../services/globalContext';
 function Header() {
-  const username = 'tungngo2525@gmail.com';
-  const navigate = useNavigate();
+  const {userName ,setIsLogined } = useGlobal();
 
   const handleLogout = () => {
-    alert('Bạn đã đăng xuất!');
-    // TODO: Xử lý logout thực tế ở đây (xóa token, reset trạng thái,...)
-    navigate('/login');  // Điều hướng về trang đăng nhập
+    document.cookie = 'tk=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    setIsLogined(false);
   };
 
   return (
@@ -24,7 +21,7 @@ function Header() {
           position: 'fixed',
           top: 0,
           left: 0,
-          width: '100%',
+          width: '100vw',
           height: 80,
           boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
           zIndex: 1000,
@@ -74,6 +71,7 @@ function Header() {
         {/* User info + logout */}
         <div
           style={{
+            right: 0,
             display: 'flex',
             alignItems: 'center',
             gap: 20,
@@ -81,14 +79,13 @@ function Header() {
             fontWeight: '600',
             textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
             flexWrap: 'nowrap',
-            maxWidth: 400,
             boxSizing: 'border-box',
             height: '100%',
             lineHeight: '80px',
           }}
         >
           <span style={{ userSelect: 'text', whiteSpace: 'nowrap' }}>
-            Xin chào, <strong>{username}</strong>
+            Xin chào, <strong>{userName}</strong>
           </span>
 
           <button

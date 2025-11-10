@@ -1,34 +1,37 @@
 // src/pages/Login.js
 import React, { useState } from 'react';
-import { data, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Header2 from './components/Header2';
 import Footer from './components/Footer';
 import api from './services/api';
+import { useGlobal } from './services/globalContext';
 function Login({ onLoginSuccess }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { setUserName} = useGlobal();
 
   const handleSubmit = async(e) => {
     e.preventDefault();
-    const res = await api.post('/api/login',{
+    await api.post('/api/login',{
       username: username,
       password: password
+    }).then(res =>{
+      const res_data = res.data;
+      
+      if (res_data.success) {
+        document.cookie = "tk=" + res_data.data + ";";
+        setError('');
+        onLoginSuccess();
+        setUserName(username);
+        navigate('/dashboard');
+      } else {
+        setError(res_data.message);
+      }
+    }).catch(e =>{
+      setError(e.message)
     })
-    const res_data = res.data;
-    
-    console.log(res_data);
-    
-
-    if (res_data.success) {
-      document.cookie = "tk=" + res_data.data + ";";
-      setError('');
-      onLoginSuccess();
-      navigate('/dashboard');
-    } else {
-      setError(res_data.message);
-    }
   };
 
   return (

@@ -46,20 +46,8 @@ const icons = {
 };
 
 const menuItems = [
-  {
-    key: 'profile',
-    label: 'Hồ sơ',
-    icon: icons.profile,
-    subItems: [
-      { key: 'profile-account', label: 'Tài khoản', href: '/userinfo' },
-      { key: 'profile-devices', label: 'Thiết bị', href: '/profile/devices' },
-    ],
-  },
-  { key: 'devices', label: 'Thiết bị', href: '/devices', icon: icons.devices },
-  { key: 'deviceManage', label: 'Quản lý thiết bị', href: '/device-manage', icon: icons.devices },
-  { key: 'plantManage', label: 'Quản lý cây trồng', href: '/plant-manage', icon: icons.plant },
-  { key: 'analytics', label: 'Phân tích dữ liệu', href: '/analytics', icon: icons.analytics },
-  { key: 'tables', label: 'Bảng dữ liệu', href: '/dashboard', icon: icons.tables },
+  { key: 'realtimedata', label: 'Dữ liệu hiện tại', href: '/realtime-data', icon: icons.plant },
+  { key: 'analytics', label: 'Phân tích dữ liệu', href: '/analytics', icon: icons.analytics }
 ];
 
 function Sidebar() {
