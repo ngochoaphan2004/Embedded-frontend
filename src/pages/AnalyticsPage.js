@@ -6,6 +6,7 @@ import RealtimeChart from "../components/RealtimeChart"
 function AnalyticsPage() {
   const [analysis, setAnalysis] = useState();
   const [loading, setLoading] = useState(true);
+  const [selectedPeriod, setSelectedPeriod] = useState('7days');
 
   const sensors = [
     { key: "temperature", label: "Temperature (°C)", color: "#ff7043" },
@@ -15,18 +16,41 @@ function AnalyticsPage() {
     { key: "waterLevel", label: "Water Level (cm)", color: "#26a69a" },
   ];
 
+  const periods = [
+    { value: '1day', label: '1 ngày' },
+    { value: '7days', label: '7 ngày' },
+    { value: '1month', label: '1 tháng' },
+    { value: '3months', label: '3 tháng' },
+  ];
+
+  const getFromDate = (period) => {
+    const now = new Date();
+    switch (period) {
+      case '1day':
+        return new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);
+      case '7days':
+        return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      case '1month':
+        return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      case '3months':
+        return new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+      default:
+        return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    }
+  };
+
   useEffect(() => {
-    const now = new Date()
-    const pre = new Date(now.getTime() - 24 * 60 * 60 * 1000) // last 24 hours
+    setLoading(true);
+    const from = getFromDate(selectedPeriod);
     api.get("/api/data/history", {
       params: {
-        from: pre
+        from: from
       }
     }).then(res => {
       setAnalysis(res.data.data)
       setLoading(false);
     })
-  }, []);
+  }, [selectedPeriod]);
 
 
   return (
@@ -68,11 +92,30 @@ function AnalyticsPage() {
               style={{
                 fontSize: 28,
                 fontWeight: "700",
-                marginBottom: 30,
+                marginBottom: 20,
                 color: "#333",
                 textAlign: "center",
               }}
             >📊 Data Analytics</h1>
+
+            <div style={{ textAlign: 'center', marginBottom: 30 }}>
+              <label htmlFor="period-select" style={{ marginRight: 10, fontWeight: 'bold' }}>Chọn khoảng thời gian:</label>
+              <select
+                id="period-select"
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(e.target.value)}
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: 4,
+                  border: '1px solid #ccc',
+                  fontSize: 16,
+                }}
+              >
+                {periods.map(period => (
+                  <option key={period.value} value={period.value}>{period.label}</option>
+                ))}
+              </select>
+            </div>
 
             <div
               style={{

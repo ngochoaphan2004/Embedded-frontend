@@ -1,16 +1,15 @@
 import React, { useMemo } from "react";
-import { Line } from "react-chartjs-2";
+import { Bar } from "react-chartjs-2";
 import {
   Chart,
-  LineElement,
+  BarElement,
   CategoryScale,
   LinearScale,
-  PointElement,
   Legend,
   Tooltip,
 } from "chart.js";
 
-Chart.register(LineElement, CategoryScale, LinearScale, PointElement, Legend, Tooltip);
+Chart.register(BarElement, CategoryScale, LinearScale, Legend, Tooltip);
 
 const RealtimeChart = ({ data, sensor }) => {
 
@@ -51,10 +50,9 @@ const RealtimeChart = ({ data, sensor }) => {
       {
         label: sensor.label,
         data: sortedData.map((d) => d[sensor.key]),
+        backgroundColor: sensor.color,
         borderColor: sensor.color,
-        backgroundColor: sensor.color + "33",
-        fill: false,
-        tension: 0.3,
+        borderWidth: 1,
       },
     ],
   };
@@ -70,7 +68,7 @@ const RealtimeChart = ({ data, sensor }) => {
         }}
       >
         <h3 style={{ marginBottom: 10 }}>{sensor.label}</h3>
-        <Line data={chartData} options={options} height={250}  />
+        <Bar data={chartData} options={options} height={250}  />
       </div>
   );
 };
