@@ -38,7 +38,7 @@ export const useChatbot = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = useCallback((event) => {
+  const handleSend = useCallback(async (event) => {
     event?.preventDefault();
     if (!input.trim() || loading) return;
 
@@ -53,7 +53,25 @@ export const useChatbot = () => {
     };
     setMessages((prev) => [...prev, messagePayload]);
 
-    setTimeout(() => {
+    // Always send the user message + sensorData to backend Gemini endpoint
+    try {
+      const res = await api.post('/api/chatbot', {
+        message: userMessage,
+        includeSensors: true,
+        sensorData,
+      });
+
+      const reply = res?.data?.data?.reply;
+      const botText = reply || buildChatbotResponse(userMessage, sensorData);
+      const botMessage = {
+        type: 'bot',
+        text: botText,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (err) {
+      console.error('error calling /api/chatbot', err);
+      // Fallback to local rule-based response
       const response = buildChatbotResponse(userMessage, sensorData);
       const botMessage = {
         type: 'bot',
@@ -61,8 +79,9 @@ export const useChatbot = () => {
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, botMessage]);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   }, [input, loading, sensorData]);
 
   return {

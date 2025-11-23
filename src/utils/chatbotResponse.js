@@ -70,6 +70,8 @@ const HELP_MESSAGE = `Tôi có thể giúp bạn kiểm tra các thông số sau
 
 Bạn có thể hỏi: "Nhiệt độ hiện tại là bao nhiêu?" hoặc "Cho tôi biết tất cả thông số"`;
 
+const FALLBACK_MESSAGE = 'Xin lỗi, tôi chưa hiểu câu hỏi của bạn. Bạn có thể hỏi tôi về các thông số cảm biến như nhiệt độ, độ ẩm, độ ẩm đất, lượng mưa, mực nước, LED, hoặc máy bơm. Hoặc gõ "giúp" để xem hướng dẫn.';
+
 function formatAllSensors(sensorData) {
   if (!sensorData) {
     return "Xin lỗi, tôi chưa thể lấy dữ liệu cảm biến. Vui lòng thử lại sau.";
@@ -207,7 +209,6 @@ function buildChatbotResponse(question, sensorData) {
     return HELP_MESSAGE;
   }
 
-  return 'Xin lỗi, tôi chưa hiểu câu hỏi của bạn. Bạn có thể hỏi tôi về các thông số cảm biến như nhiệt độ, độ ẩm, độ ẩm đất, lượng mưa, mực nước, LED, hoặc máy bơm. Hoặc gõ "giúp" để xem hướng dẫn.';
+  return FALLBACK_MESSAGE;
 }
-
-export { buildChatbotResponse };
+export { buildChatbotResponse, FALLBACK_MESSAGE };
