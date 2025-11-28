@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import PlantManage from './pages/PlantManage';  // Trang quản lý cây trồng mới
 import AnalyticsPage from './pages/AnalyticsPage';
+import ChatbotPage from './pages/ChatbotPage';
 import Login from './Login';
 import {useGlobal} from './services/globalContext'
 
@@ -41,6 +42,7 @@ function AppRoutes() {
         <Route element={<RequireAuth isLogined={isLogined} />}>
           <Route path="/realtime-data" element={<PlantManage />} /> 
           <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/chatbot" element={<ChatbotPage />} />
         </Route>
 
         {/* Redirect tất cả các đường dẫn khác về login */}
