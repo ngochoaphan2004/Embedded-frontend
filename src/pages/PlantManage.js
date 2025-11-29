@@ -22,7 +22,11 @@ const PlantManage = () => {
     rainfall: 0,
     soilMoisture: 0,
     waterLevel: 0,
+    latestData: [],
   });
+  const [showModal, setShowModal] = useState(false);
+  const [selectedSensor, setSelectedSensor] = useState('');
+  const [modalData, setModalData] = useState([]);
 
 
   useEffect(() => {
@@ -31,7 +35,7 @@ const PlantManage = () => {
         const res = await api.get("/api/data/realtime");
         const sensorData = res.data?.data;
 
-        if (sensorData) setData(sensorData);
+        if (sensorData) setData({ ...sensorData, latestData: sensorData.latestData || [] });
       } catch (error) {
         console.error("Lỗi tải dữ liệu cảm biến:", error);
       }
@@ -179,7 +183,11 @@ const PlantManage = () => {
                       ? toggleLED
                       : sensor.title === "Pump State"
                       ? togglePump
-                      : undefined
+                      : () => {
+                          setSelectedSensor(sensor.title);
+                          setModalData(data.latestData);
+                          setShowModal(true);
+                        }
                   }
                 />
               );
@@ -205,6 +213,97 @@ const PlantManage = () => {
           💡 Click LED/Pump cards to toggle on/off.
         </div>
       </main>
+
+      {showModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            zIndex: 1000,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            backdropFilter: 'blur(5px)',
+          }}
+          onClick={() => setShowModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              padding: '30px',
+              borderRadius: '16px',
+              maxWidth: '95%',
+              maxHeight: '85%',
+              overflow: 'auto',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+              border: '1px solid #e0e0e0',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ margin: 0, color: '#333', fontSize: '24px', fontWeight: 'bold' }}>
+                📊 {selectedSensor} - Latest Data
+              </h2>
+              <button
+                onClick={() => setShowModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: '#666',
+                  padding: '5px',
+                  borderRadius: '50%',
+                  width: '40px',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'background-color 0.2s',
+                }}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#f0f0f0'}
+                onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+              >
+                ×
+              </button>
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#f8f9fa' }}>
+                    <th style={{ border: '1px solid #dee2e6', padding: '12px', textAlign: 'left', fontWeight: 'bold', color: '#495057' }}>DateTime</th>
+                    <th style={{ border: '1px solid #dee2e6', padding: '12px', textAlign: 'left', fontWeight: 'bold', color: '#495057' }}>Temperature (°C)</th>
+                    <th style={{ border: '1px solid #dee2e6', padding: '12px', textAlign: 'left', fontWeight: 'bold', color: '#495057' }}>Humidity (%)</th>
+                    <th style={{ border: '1px solid #dee2e6', padding: '12px', textAlign: 'left', fontWeight: 'bold', color: '#495057' }}>Soil Moisture (%)</th>
+                    <th style={{ border: '1px solid #dee2e6', padding: '12px', textAlign: 'left', fontWeight: 'bold', color: '#495057' }}>Water Level (cm)</th>
+                    <th style={{ border: '1px solid #dee2e6', padding: '12px', textAlign: 'left', fontWeight: 'bold', color: '#495057' }}>Rainfall (mm)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {modalData.map((item, index) => {
+                    const date = new Date(item.dateTime._seconds * 1000 + item.dateTime._nanoseconds / 1000000);
+                    const formattedDate = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')} ${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+                    return (
+                      <tr key={index} style={{ backgroundColor: index % 2 === 0 ? '#ffffff' : '#f8f9fa', transition: 'background-color 0.2s' }} onMouseOver={(e) => e.target.closest('tr').style.backgroundColor = '#e9ecef'} onMouseOut={(e) => e.target.closest('tr').style.backgroundColor = index % 2 === 0 ? '#ffffff' : '#f8f9fa'}>
+                        <td style={{ border: '1px solid #dee2e6', padding: '12px', color: '#495057' }}>{formattedDate}</td>
+                        <td style={{ border: '1px solid #dee2e6', padding: '12px', color: '#495057' }}>{item.temperature.toFixed(2)}</td>
+                        <td style={{ border: '1px solid #dee2e6', padding: '12px', color: '#495057' }}>{item.humidity.toFixed(2)}</td>
+                        <td style={{ border: '1px solid #dee2e6', padding: '12px', color: '#495057' }}>{item.soilMoisture.toFixed(2)}</td>
+                        <td style={{ border: '1px solid #dee2e6', padding: '12px', color: '#495057' }}>{item.waterLevel.toFixed(2)}</td>
+                        <td style={{ border: '1px solid #dee2e6', padding: '12px', color: '#495057' }}>{item.rainfall.toFixed(2)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

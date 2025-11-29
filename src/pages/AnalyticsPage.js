@@ -7,6 +7,7 @@ function AnalyticsPage() {
   const [analysis, setAnalysis] = useState();
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState('7days');
+  const [selectedDevice, setSelectedDevice] = useState('history_sensor_data');
 
   const sensors = [
     { key: "temperature", label: "Temperature (°C)", color: "#ff7043" },
@@ -21,6 +22,14 @@ function AnalyticsPage() {
     { value: '7days', label: '7 ngày' },
     { value: '1month', label: '1 tháng' },
     { value: '3months', label: '3 tháng' },
+  ];
+
+  const devices = [
+    { value: 'history_sensor_data', label: 'Thiết bị 0' },
+    { value: 'device1', label: 'Thiết bị 1' },
+    { value: 'device2', label: 'Thiết bị 2' },
+    { value: 'device3', label: 'Thiết bị 3' },
+    { value: 'device4', label: 'Thiết bị 4' },
   ];
 
   const getFromDate = (period) => {
@@ -42,15 +51,15 @@ function AnalyticsPage() {
   useEffect(() => {
     setLoading(true);
     const from = getFromDate(selectedPeriod);
-    api.get("/api/data/history", {
-      params: {
-        from: from
-      }
-    }).then(res => {
+    const params = { from: from };
+    if (selectedDevice !== 'history_sensor_data') {
+      params.device = selectedDevice;
+    }
+    api.get("/api/data/history", { params }).then(res => {
       setAnalysis(res.data.data)
       setLoading(false);
     })
-  }, [selectedPeriod]);
+  }, [selectedPeriod, selectedDevice]);
 
 
   return (
@@ -98,30 +107,51 @@ function AnalyticsPage() {
               }}
             >📊 Data Analytics</h1>
 
-            <div style={{ textAlign: 'center', marginBottom: 30 }}>
-              <label htmlFor="period-select" style={{ marginRight: 10, fontWeight: 'bold' }}>Chọn khoảng thời gian:</label>
-              <select
-                id="period-select"
-                value={selectedPeriod}
-                onChange={(e) => setSelectedPeriod(e.target.value)}
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: 4,
-                  border: '1px solid #ccc',
-                  fontSize: 16,
-                }}
-              >
-                {periods.map(period => (
-                  <option key={period.value} value={period.value}>{period.label}</option>
-                ))}
-              </select>
+            <div style={{ textAlign: 'center', marginBottom: 30, display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
+              <div>
+                <label htmlFor="device-select" style={{ marginRight: 10, fontWeight: 'bold' }}>Chọn thiết bị:</label>
+                <select
+                  id="device-select"
+                  value={selectedDevice}
+                  onChange={(e) => setSelectedDevice(e.target.value)}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: 4,
+                    border: '1px solid #ccc',
+                    fontSize: 16,
+                  }}
+                >
+                  {devices.map(device => (
+                    <option key={device.value} value={device.value}>{device.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="period-select" style={{ marginRight: 10, fontWeight: 'bold' }}>Chọn khoảng thời gian:</label>
+                <select
+                  id="period-select"
+                  value={selectedPeriod}
+                  onChange={(e) => setSelectedPeriod(e.target.value)}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: 4,
+                    border: '1px solid #ccc',
+                    fontSize: 16,
+                  }}
+                >
+                  {periods.map(period => (
+                    <option key={period.value} value={period.value}>{period.label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(600px, 1fr))",
-                gap: "30px",
+                gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
+                gap: "20px",
                 justifyContent: "center",
                 alignItems: "stretch",
                 width: "100%",
