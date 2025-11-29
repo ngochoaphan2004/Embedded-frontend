@@ -13,6 +13,15 @@ Chart.register(BarElement, CategoryScale, LinearScale, Legend, Tooltip);
 
 const RealtimeChart = ({ data, sensor }) => {
 
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    return `${hours}:${minutes} ${day}-${month} `;
+  };
+
   const sortedData = useMemo(() => {
     if (!Array.isArray(data)) return [];
     return [...data].sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
@@ -45,7 +54,7 @@ const RealtimeChart = ({ data, sensor }) => {
   };
 
   const chartData = {
-    labels: sortedData.map((d) => d.dateTime),
+    labels: sortedData.map((d) => formatDate(d.dateTime)),
     datasets: [
       {
         label: sensor.label,
@@ -62,13 +71,13 @@ const RealtimeChart = ({ data, sensor }) => {
         key={sensor.key}
         style={{
           background: "#fff",
-          padding: 20,
-          borderRadius: 16,
+          padding: 15,
+          borderRadius: 12,
           boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
         }}
       >
         <h3 style={{ marginBottom: 10 }}>{sensor.label}</h3>
-        <Bar data={chartData} options={options} height={250}  />
+        <Bar data={chartData} options={options} height={180}  />
       </div>
   );
 };
