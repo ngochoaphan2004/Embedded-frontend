@@ -1,6 +1,6 @@
 import React from "react";
 
-const SensorCard = ({ icon, title, value, unit, status, bgColor }) => {
+const SensorCard = ({ icon, title, value, unit, status, bgColor, onClick }) => {
   const style = {
     background: bgColor,
     borderRadius: 16,
@@ -10,10 +10,11 @@ const SensorCard = ({ icon, title, value, unit, status, bgColor }) => {
     alignItems: "center",
     gap: "12px",
     transition: "background-color 0.5s ease",
+    cursor: onClick ? "pointer" : "default",
   };
 
   return (
-    <div style={style}>
+    <div style={style} onClick={onClick}>
       <div style={{ fontSize: 32 }}>{icon}</div>
       <div>
         <h3 style={{ margin: 0, fontSize: "1.1rem" }}>{title}</h3>
