@@ -38,7 +38,7 @@ const PlantManage = () => {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 5000);
+    const interval = setInterval(fetchData, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -87,16 +87,37 @@ const PlantManage = () => {
     }
   };
 
+  const toggleLED = async () => {
+    const newState = !data.ledState;
+    setData(prev => ({ ...prev, ledState: newState }));
+    try {
+      await api.post('/api/control/led', { action: newState ? "on" : "off" });
+    } catch (error) {
+      console.error('Error toggling LED:', error);
+      setData(prev => ({ ...prev, ledState: !newState }));
+    }
+  };
+
+  const togglePump = async () => {
+    const newState = !data.pumpState;
+    setData(prev => ({ ...prev, pumpState: newState }));
+    try {
+      await api.post('/api/control/pump', { action: newState ? "on" : "off" });
+    } catch (error) {
+      console.error('Error toggling Pump:', error);
+      setData(prev => ({ ...prev, pumpState: !newState }));
+    }
+  };
+
   return (
-    <>
+    <div style={{ height: "100vh", backgroundColor: "#f8f9fa" }}>
       <Header />
       <Sidebar />
       <main
         style={{
           marginLeft: 250,
           padding: 20,
-          minHeight: "calc(100vh - 140px)",
-          backgroundColor: "#f8f9fa",
+          height: "calc(100vh - 140px)",
         }}
       >
         <h1
@@ -153,14 +174,38 @@ const PlantManage = () => {
                   unit={sensor.unit}
                   status={status.label}
                   bgColor={status.color}
+                  onClick={
+                    sensor.title === "LED State"
+                      ? toggleLED
+                      : sensor.title === "Pump State"
+                      ? togglePump
+                      : undefined
+                  }
                 />
               );
             })}
           </div>
 
         </div>
+        <div
+          style={{
+            position: "fixed",
+            bottom: 20,
+            right: 20,
+            backgroundColor: "rgba(255, 255, 255, 0.9)",
+            padding: "8px 12px",
+            borderRadius: "6px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            fontSize: 14,
+            color: "#666",
+            zIndex: 1000,
+            whiteSpace: "nowrap",
+          }}
+        >
+          💡 Click LED/Pump cards to toggle on/off.
+        </div>
       </main>
-    </>
+    </div>
   );
 };
 
