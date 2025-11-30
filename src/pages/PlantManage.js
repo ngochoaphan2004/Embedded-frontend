@@ -27,6 +27,10 @@ const PlantManage = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedSensor, setSelectedSensor] = useState('');
   const [modalData, setModalData] = useState([]);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const [onConfirmAction, setOnConfirmAction] = useState(null);
+  const [devices, setDevices] = useState([]);
 
 
   useEffect(() => {
@@ -41,8 +45,27 @@ const PlantManage = () => {
       }
     };
 
+    const fetchDevices = async () => {
+      try {
+        const res = await api.get('/api/devices');
+        const deviceData = res.data?.data || [];
+        const formattedDevices = deviceData.map(device => ({
+          value: device.name,
+          label: `Thiết bị ${device.name.replace('device', '')}`,
+          status: device.status ? 'Bật' : 'Tắt'
+        }));
+        setDevices(formattedDevices);
+      } catch (error) {
+        console.error('Error fetching devices:', error);
+      }
+    };
+
     fetchData();
-    const interval = setInterval(fetchData, 10000);
+    fetchDevices();
+    const interval = setInterval(() => {
+      fetchData();
+      fetchDevices();
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -91,26 +114,36 @@ const PlantManage = () => {
     }
   };
 
-  const toggleLED = async () => {
-    const newState = !data.ledState;
-    setData(prev => ({ ...prev, ledState: newState }));
-    try {
-      await api.post('/api/control/led', { action: newState ? "on" : "off" });
-    } catch (error) {
-      console.error('Error toggling LED:', error);
-      setData(prev => ({ ...prev, ledState: !newState }));
-    }
+  const toggleLED = () => {
+    setConfirmMessage(`Bạn có muốn ${data.ledState ? 'tắt' : 'bật'} đèn LED?`);
+    setOnConfirmAction(() => async () => {
+      const newState = !data.ledState;
+      setData(prev => ({ ...prev, ledState: newState }));
+      try {
+        await api.post('/api/control/led', { action: newState ? "on" : "off" });
+      } catch (error) {
+        console.error('Error toggling LED:', error);
+        setData(prev => ({ ...prev, ledState: !newState }));
+      }
+      setShowConfirmModal(false);
+    });
+    setShowConfirmModal(true);
   };
 
-  const togglePump = async () => {
-    const newState = !data.pumpState;
-    setData(prev => ({ ...prev, pumpState: newState }));
-    try {
-      await api.post('/api/control/pump', { action: newState ? "on" : "off" });
-    } catch (error) {
-      console.error('Error toggling Pump:', error);
-      setData(prev => ({ ...prev, pumpState: !newState }));
-    }
+  const togglePump = () => {
+    setConfirmMessage(`Bạn có muốn ${data.pumpState ? 'tắt' : 'bật'} máy bơm?`);
+    setOnConfirmAction(() => async () => {
+      const newState = !data.pumpState;
+      setData(prev => ({ ...prev, pumpState: newState }));
+      try {
+        await api.post('/api/control/pump', { action: newState ? "on" : "off" });
+      } catch (error) {
+        console.error('Error toggling Pump:', error);
+        setData(prev => ({ ...prev, pumpState: !newState }));
+      }
+      setShowConfirmModal(false);
+    });
+    setShowConfirmModal(true);
   };
 
   return (
@@ -138,12 +171,38 @@ const PlantManage = () => {
         <div style={{
           width: "100",
           height: "100%",
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+          display: "flex",
+          flexDirection: "column",
           gap: "24px",
-          justifyContent: "center",
-          alignItems: "stretch",
         }}>
+
+          {/* Device Status Widget */}
+          {devices.length > 0 && (
+            <div>
+              <h3 style={{ textAlign: 'center', marginBottom: 10, color: '#333', fontSize: '18px' }}>Trạng thái Thiết bị</h3>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                  gap: "12px",
+                  justifyContent: "center",
+                  alignItems: "stretch",
+                }}
+              >
+                {devices.map(device => (
+                  <SensorCard
+                    key={device.value}
+                    icon="💡"
+                    title={device.label}
+                    value={device.status}
+                    unit=""
+                    status={device.status}
+                    bgColor={device.status === 'Bật' ? '#c8e6c9' : '#ffcdd2'}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Cards */}
           <div
@@ -193,7 +252,6 @@ const PlantManage = () => {
               );
             })}
           </div>
-
         </div>
         <div
           style={{
@@ -300,6 +358,74 @@ const PlantManage = () => {
                   })}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showConfirmModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            zIndex: 1000,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            backdropFilter: 'blur(5px)',
+          }}
+          onClick={() => setShowConfirmModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              padding: '30px',
+              borderRadius: '16px',
+              maxWidth: '400px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+              border: '1px solid #e0e0e0',
+              textAlign: 'center',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ margin: '0 0 20px 0', color: '#333', fontSize: '20px' }}>
+              Xác nhận
+            </h2>
+            <p style={{ margin: '0 0 30px 0', color: '#666' }}>
+              {confirmMessage}
+            </p>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                style={{
+                  padding: '10px 20px',
+                  border: '1px solid #ccc',
+                  borderRadius: '8px',
+                  backgroundColor: '#f5f5f5',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                }}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={onConfirmAction}
+                style={{
+                  padding: '10px 20px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  backgroundColor: '#4caf50',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                }}
+              >
+                Xác nhận
+              </button>
             </div>
           </div>
         </div>

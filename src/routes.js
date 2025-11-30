@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-
 import PlantManage from './pages/PlantManage';  // Trang quản lý cây trồng mới
 import AnalyticsPage from './pages/AnalyticsPage';
 import ChatbotPage from './pages/ChatbotPage';
+import DevicePage from './pages/Device';
 import Login from './Login';
 import {useGlobal} from './services/globalContext'
 
@@ -43,6 +44,7 @@ function AppRoutes() {
           <Route path="/realtime-data" element={<PlantManage />} /> 
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/chatbot" element={<ChatbotPage />} />
+          <Route path="/device" element={<DevicePage />} />
         </Route>
 
         {/* Redirect tất cả các đường dẫn khác về login */}

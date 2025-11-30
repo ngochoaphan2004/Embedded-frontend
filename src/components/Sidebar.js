@@ -53,6 +53,7 @@ const icons = {
 
 const menuItems = [
   { key: 'realtimedata', label: 'Dữ liệu hiện tại', href: '/realtime-data', icon: icons.plant },
+  { key: 'device', label: 'Quản lý thiết bị', href: '/device', icon: icons.devices },
   { key: 'analytics', label: 'Phân tích dữ liệu', href: '/analytics', icon: icons.analytics },
   { key: 'chatbot', label: 'AI Chatbot', href: '/chatbot', icon: icons.chatbot}
 ];
