@@ -30,6 +30,7 @@ const PlantManage = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmMessage, setConfirmMessage] = useState('');
   const [onConfirmAction, setOnConfirmAction] = useState(null);
+  const [devices, setDevices] = useState([]);
 
 
   useEffect(() => {
@@ -44,8 +45,27 @@ const PlantManage = () => {
       }
     };
 
+    const fetchDevices = async () => {
+      try {
+        const res = await api.get('/api/devices');
+        const deviceData = res.data?.data || [];
+        const formattedDevices = deviceData.map(device => ({
+          value: device.name,
+          label: `Thiết bị ${device.name.replace('device', '')}`,
+          status: device.status ? 'Bật' : 'Tắt'
+        }));
+        setDevices(formattedDevices);
+      } catch (error) {
+        console.error('Error fetching devices:', error);
+      }
+    };
+
     fetchData();
-    const interval = setInterval(fetchData, 10000);
+    fetchDevices();
+    const interval = setInterval(() => {
+      fetchData();
+      fetchDevices();
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -151,12 +171,38 @@ const PlantManage = () => {
         <div style={{
           width: "100",
           height: "100%",
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+          display: "flex",
+          flexDirection: "column",
           gap: "24px",
-          justifyContent: "center",
-          alignItems: "stretch",
         }}>
+
+          {/* Device Status Widget */}
+          {devices.length > 0 && (
+            <div>
+              <h3 style={{ textAlign: 'center', marginBottom: 10, color: '#333', fontSize: '18px' }}>Trạng thái Thiết bị</h3>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                  gap: "12px",
+                  justifyContent: "center",
+                  alignItems: "stretch",
+                }}
+              >
+                {devices.map(device => (
+                  <SensorCard
+                    key={device.value}
+                    icon="💡"
+                    title={device.label}
+                    value={device.status}
+                    unit=""
+                    status={device.status}
+                    bgColor={device.status === 'Bật' ? '#c8e6c9' : '#ffcdd2'}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Cards */}
           <div
@@ -206,7 +252,6 @@ const PlantManage = () => {
               );
             })}
           </div>
-
         </div>
         <div
           style={{

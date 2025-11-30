@@ -5,23 +5,39 @@ import SensorCard from '../components/SensorCard';
 import api from '../services/api';
 
 function Device() {
-  const [devices, setDevices] = useState([
-    { value: 'device0', label: 'Thiết bị 0', status: 'Off' },
-    { value: 'device1', label: 'Thiết bị 1', status: 'On' },
-    { value: 'device2', label: 'Thiết bị 2', status: 'Off' },
-    { value: 'device3', label: 'Thiết bị 3', status: 'On' },
-    { value: 'device4', label: 'Thiết bị 4', status: 'Off' },
-  ]);
+  const [devices, setDevices] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmMessage, setConfirmMessage] = useState('');
   const [onConfirmAction, setOnConfirmAction] = useState(null);
+
+  useEffect(() => {
+    const fetchDevices = async () => {
+      try {
+        const res = await api.get('/api/devices');
+        const deviceData = res.data?.data || [];
+        const formattedDevices = deviceData.map(device => ({
+          value: device.name,
+          label: `Thiết bị ${device.name.replace('device', '')}`,
+          status: device.status ? 'On' : 'Off'
+        }));
+        setDevices(formattedDevices);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching devices:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchDevices();
+  }, []);
 
   const toggleDevice = (device) => {
     setConfirmMessage(`Bạn có muốn ${device.status === 'On' ? 'tắt' : 'bật'} thiết bị ${device.label}?`);
     setOnConfirmAction(() => async () => {
       try {
-        // Assume API endpoint for toggling
-        await api.post(`/api/devices/${device.value}/toggle`);
+        const action = device.status === 'On' ? 'off' : 'on';
+        await api.post(`/api/device/${device.value}/${action}`);
         // Update local state
         setDevices(prev => prev.map(d => d.value === device.value ? { ...d, status: d.status === 'On' ? 'Off' : 'On' } : d));
       } catch (error) {
@@ -66,33 +82,47 @@ function Device() {
           boxSizing: 'border-box',
         }}
       >
-        <h1 style={{ fontSize: 28, fontWeight: "700", marginBottom: 20, color: "#333", textAlign: "center" }}>
-          ⚙️ Quản lý Thiết bị
-        </h1>
+        {loading ? (
+          <p style={{ paddingTop: 100, textAlign: 'center' }}>Đang tải dữ liệu thiết bị...</p>
+        ) : (
+          <>
+            <h1 style={{ fontSize: 28, fontWeight: "700", marginBottom: 20, color: "#333", textAlign: "center" }}>
+              ⚙️ Quản lý Thiết bị
+            </h1>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-            gap: "20px",
-            justifyContent: "center",
-            alignItems: "stretch",
-            width: "100%",
-          }}
-        >
-          {devices.map(device => (
-            <SensorCard
-              key={device.value}
-              icon="💡"
-              title={device.label}
-              value={device.status}
-              unit=""
-              status={device.status}
-              bgColor={device.status === 'On' ? '#c8e6c9' : '#ffcdd2'}
-              onClick={() => toggleDevice(device)}
-            />
-          ))}
-        </div>
+            <div style={{ textAlign: 'left', marginBottom: 30, color: '#666', fontSize: '14px', maxWidth: '600px', margin: '0 auto 30px auto' }}>
+              <p>Đây là trang quản lý trạng thái của các thiết bị. Nhấn vào thẻ thiết bị để thay đổi trạng thái.</p>
+              <ul>
+                <li>"Bật": Thiết bị đang hoạt động.</li>
+                <li>"Tắt": Thiết bị không hoạt động do lỗi hoặc phát nhiệt bất thường trong dữ liệu gửi về. Tắt để đảm bảo hệ thống hoạt động đúng. </li>
+              </ul>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+                gap: "20px",
+                justifyContent: "center",
+                alignItems: "stretch",
+                width: "100%",
+              }}
+            >
+              {devices.map(device => (
+                <SensorCard
+                  key={device.value}
+                  icon="💡"
+                  title={device.label}
+                  value={device.status === 'On' ? 'Bật' : 'Tắt'}
+                  unit=""
+                  status={device.status}
+                  bgColor={device.status === 'On' ? '#c8e6c9' : '#ffcdd2'}
+                  onClick={() => toggleDevice(device)}
+                />
+              ))}
+            </div>
+          </>
+        )}
       </main>
 
       {showConfirmModal && (
