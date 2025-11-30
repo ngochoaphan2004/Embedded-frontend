@@ -38,12 +38,14 @@ export const useChatbot = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = useCallback(async (event) => {
-    event?.preventDefault();
-    if (!input.trim() || loading) return;
+  const sendMessage = useCallback(async (messageOverride) => {
+    const source = typeof messageOverride === 'string' ? messageOverride : input;
+    const userMessage = source.trim();
+    if (!userMessage || loading) return;
 
-    const userMessage = input.trim();
-    setInput('');
+    if (messageOverride === undefined || messageOverride === null) {
+      setInput('');
+    }
     setLoading(true);
 
     const messagePayload = {
@@ -84,6 +86,11 @@ export const useChatbot = () => {
     }
   }, [input, loading, sensorData]);
 
+  const handleSend = useCallback((event) => {
+    event?.preventDefault();
+    sendMessage();
+  }, [sendMessage]);
+
   return {
     messages,
     loading,
@@ -91,5 +98,6 @@ export const useChatbot = () => {
     setInput,
     handleSend,
     messagesEndRef,
+    sendMessage,
   };
 };

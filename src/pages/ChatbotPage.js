@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import { useChatbot } from '../hooks/useChatbot';
+import { useVoiceInput } from '../hooks/useVoiceInput';
 import ChatMessageList from '../components/chatbot/ChatMessageList';
 import ChatInput from '../components/chatbot/ChatInput';
 
@@ -13,7 +14,38 @@ const ChatbotPage = () => {
     setInput,
     handleSend,
     messagesEndRef,
+    sendMessage,
   } = useChatbot();
+
+  const handleVoiceFinal = useCallback((text) => {
+    const cleanText = text?.trim();
+    if (!cleanText || loading) {
+      return;
+    }
+    sendMessage(cleanText);
+  }, [loading, sendMessage]);
+
+  const {
+    isSupported: voiceSupported,
+    isListening,
+    transcript: voiceTranscript,
+    error: voiceError,
+    startListening,
+    stopListening,
+    resetTranscript,
+  } = useVoiceInput({ onFinalTranscript: handleVoiceFinal });
+
+  const handleVoiceToggle = useCallback(() => {
+    if (!voiceSupported) {
+      return;
+    }
+    if (isListening) {
+      stopListening();
+      return;
+    }
+    resetTranscript();
+    startListening();
+  }, [voiceSupported, isListening, resetTranscript, startListening, stopListening]);
 
   return (
     <>
@@ -65,6 +97,12 @@ const ChatbotPage = () => {
             onChange={(e) => setInput(e.target.value)}
             onSubmit={handleSend}
             disabled={!input.trim() || loading}
+            onVoiceToggle={handleVoiceToggle}
+            voiceSupported={voiceSupported}
+            isListening={isListening}
+            voicePreview={voiceTranscript}
+            voiceError={voiceError}
+            voiceDisabled={loading}
           />
         </div>
       </main>
