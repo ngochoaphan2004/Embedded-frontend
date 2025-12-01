@@ -72,6 +72,40 @@ Bạn có thể hỏi: "Nhiệt độ hiện tại là bao nhiêu?" hoặc "Cho 
 
 const FALLBACK_MESSAGE = 'Xin lỗi, tôi chưa hiểu câu hỏi của bạn. Bạn có thể hỏi tôi về các thông số cảm biến như nhiệt độ, độ ẩm, độ ẩm đất, lượng mưa, mực nước, LED, hoặc máy bơm. Hoặc gõ "giúp" để xem hướng dẫn.';
 
+function formatTimestamp(value) {
+  if (!value) return null;
+
+  try {
+    if (value instanceof Date) {
+      return value.toLocaleString('vi-VN');
+    }
+
+    if (typeof value === 'string') {
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString('vi-VN');
+    }
+
+    if (typeof value === 'number') {
+      return new Date(value).toLocaleString('vi-VN');
+    }
+
+    if (typeof value.toDate === 'function') {
+      return value.toDate().toLocaleString('vi-VN');
+    }
+
+    const seconds = value.seconds ?? value._seconds;
+    if (typeof seconds === 'number') {
+      const nanos = value.nanoseconds ?? value._nanoseconds ?? 0;
+      const date = new Date(seconds * 1000 + nanos / 1e6);
+      return date.toLocaleString('vi-VN');
+    }
+  } catch (error) {
+    console.warn('Không thể định dạng timestamp chatbot:', error);
+  }
+
+  return null;
+}
+
 function formatAllSensors(sensorData) {
   if (!sensorData) {
     return "Xin lỗi, tôi chưa thể lấy dữ liệu cảm biến. Vui lòng thử lại sau.";
@@ -88,8 +122,9 @@ function formatAllSensors(sensorData) {
   response += `💡 LED: ${sensorData.ledState ? "BẬT" : "TẮT"}\n`;
   response += `🔧 Máy bơm: ${sensorData.pumpState ? "BẬT" : "TẮT"}\n`;
 
-  if (sensorData.dateTime) {
-    response += `\n⏰ Cập nhật lúc: ${sensorData.dateTime}`;
+  const timestamp = formatTimestamp(sensorData.dateTime || sensorData.timestamp);
+  if (timestamp) {
+    response += `\n⏰ Cập nhật lúc: ${timestamp}`;
   }
 
   return response;
@@ -123,8 +158,9 @@ function formatSingleSensor(sensor, value, sensorData) {
     }
   }
 
-  if (sensorData?.dateTime) {
-    response += `\n⏰ Cập nhật lúc: ${sensorData.dateTime}`;
+  const timestamp = formatTimestamp(sensorData?.dateTime || sensorData?.timestamp);
+  if (timestamp) {
+    response += `\n⏰ Cập nhật lúc: ${timestamp}`;
   }
 
   return response;
