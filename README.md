@@ -8,7 +8,7 @@ A React-based frontend application for monitoring IoT sensors, plant management,
 1. Clone the repository:
    ```
    git clone <repository-url>
-   cd coreiot-frontend
+   cd embedded-frontend
    ```
 
 2. Install dependencies:
