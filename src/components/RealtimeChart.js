@@ -24,7 +24,7 @@ const RealtimeChart = ({ data, sensor }) => {
 
   const sortedData = useMemo(() => {
     if (!Array.isArray(data)) return [];
-    return [...data].sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
+    return [...data].sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime));
   }, [data]);
 
   const options = {
@@ -38,7 +38,8 @@ const RealtimeChart = ({ data, sensor }) => {
       },
       x: {
         title: { display: true, text: "Thời gian" },
-        ticks: { autoSkip: true, maxTicksLimit: 8 },
+        ticks: { autoSkip: true, maxTicksLimit: 10 },
+        reverse: true,
       },
     },
     plugins: {
